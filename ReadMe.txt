@@ -1,88 +1,85 @@
 ========================================================================
-       MICROSOFT FOUNDATION CLASS LIBRARY : T
+       Use Console in MFC
 ========================================================================
 
+例如一个对话框程序。
+BOOL CTDlg::OnInitDialog()
+{ 添加     //打开控制台
+      ::AllocConsole();    // 打开控制台资源
+     freopen("CONOUT$", "w+t", stdout);    // 申请写
+      freopen("CONIN$","r+t",stdin);
+}
 
-AppWizard has created this T application for you.  This application
-not only demonstrates the basics of using the Microsoft Foundation classes
-but is also a starting point for writing your application.
+然后在需要用到的地方添加这段代码：
 
-This file contains a summary of what you will find in each of the files that
-make up your T application.
-
-T.dsp
-    This file (the project file) contains information at the project level and
-    is used to build a single project or subproject. Other users can share the
-    project (.dsp) file, but they should export the makefiles locally.
-
-T.h
-    This is the main header file for the application.  It includes other
-    project specific headers (including Resource.h) and declares the
-    CTApp application class.
-
-T.cpp
-    This is the main application source file that contains the application
-    class CTApp.
-
-T.rc
-    This is a listing of all of the Microsoft Windows resources that the
-    program uses.  It includes the icons, bitmaps, and cursors that are stored
-    in the RES subdirectory.  This file can be directly edited in Microsoft
-	Visual C++.
-
-T.clw
-    This file contains information used by ClassWizard to edit existing
-    classes or add new classes.  ClassWizard also uses this file to store
-    information needed to create and edit message maps and dialog data
-    maps and to create prototype member functions.
-
-res\T.ico
-    This is an icon file, which is used as the application's icon.  This
-    icon is included by the main resource file T.rc.
-
-res\T.rc2
-    This file contains resources that are not edited by Microsoft 
-	Visual C++.  You should place all resources not editable by
-	the resource editor in this file.
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-
-AppWizard creates one dialog class:
-
-TDlg.h, TDlg.cpp - the dialog
-    These files contain your CTDlg class.  This class defines
-    the behavior of your application's main dialog.  The dialog's
-    template is in T.rc, which can be edited in Microsoft
-	Visual C++.
+转自http://ygdljg.blog.163.com/blog/static/54601046200893042229423/
+        写这份博客，首先感谢swordzjj，从他的专栏中找到这么宝贵的资源，我要在MFC中调用自己的模板类的输出函数，这个模板类已经在控制台程序下实现，所以其输出函数都是用cout在控制台窗口中输出的，为了在MFC中演示自己的模板类的输出，又不想重写自己的输出函数，所以要在MFC中用到控制台窗口，故要在MFC中重载std::cout来使用cout，废话少说，让我们看看如何实现的。
+ #ifndef __GUICON_H__
+#define __GUICON_H__
+#include <windows.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <io.h>
+#include <iostream>
+#include <fstream>
+using namespace std;
+// maximum mumber of lines the output console should have
+static const WORD MAX_CONSOLE_LINES = 500;
+void RedirectIOToConsole();
+void RedirectIOToConsole()
+{
+ int hConHandle;
+ HANDLE lStdHandle;
+ CONSOLE_SCREEN_BUFFER_INFO coninfo;
+ FILE *fp;
+ // allocate a console for this app
+ AllocConsole();
+ // set the screen buffer to be big enough to let us scroll text
+ GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
+ coninfo.dwSize.Y = MAX_CONSOLE_LINES;
+ SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
+ // redirect unbuffered STDOUT to the console
+ lStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+ hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ fp = _fdopen( hConHandle, "w" );
+ *stdout = *fp;
+ setvbuf( stdout, NULL, _IONBF, 0 );
+ // redirect unbuffered STDIN to the console
+ lStdHandle = GetStdHandle(STD_INPUT_HANDLE);
+ hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ fp = _fdopen( hConHandle, "r" );
+ *stdin = *fp;
+ setvbuf( stdin, NULL, _IONBF, 0 );
+ // redirect unbuffered STDERR to the console
+ lStdHandle = GetStdHandle(STD_ERROR_HANDLE);
+ hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ fp = _fdopen( hConHandle, "w" );
+ *stderr = *fp;
+ setvbuf( stderr, NULL, _IONBF, 0 );
+ // make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
+ // point to console as well
+ ios::sync_with_stdio();
+}
+#endif 
 
 
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
+然后就可以顺利用cout cin了。！！
 
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named T.pch and a precompiled types file named StdAfx.obj.
 
-Resource.h
-    This is the standard header file, which defines new resource IDs.
-    Microsoft Visual C++ reads and updates this file.
+http://blog.csdn.net/everettjf/article/details/5931043
 
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
+AllocConsole();  
+freopen("CONOUT$","w+t",stdout);  
+freopen("CONIN$","r+t",stdin);  
+cout << "Input:" <<endl;
+int iTest = 0;
+cin >> iTest;
+fclose(stdout);
+fclose(stdin);
+FreeConsole();
 
-AppWizard uses "TODO:" to indicate parts of the source code you
-should add to or customize.
+记得在结束程序钱释放掉。
 
-If your application uses MFC in a shared DLL, and your application is 
-in a language other than the operating system's current language, you
-will need to copy the corresponding localized resources MFC42XXX.DLL
-from the Microsoft Visual C++ CD-ROM onto the system or system32 directory,
-and rename it to be MFCLOC.DLL.  ("XXX" stands for the language abbreviation.
-For example, MFC42DEU.DLL contains resources translated to German.)  If you
-don't do this, some of the UI elements of your application will remain in the
-language of the operating system.
-
-/////////////////////////////////////////////////////////////////////////////
+http://blog.csdn.net/acaiacc/article/details/5543669
+http://blog.csdn.net/VisualEleven/article/details/5517541
+http://nianning1981.blog.163.com/blog/static/30830143201002632546873/

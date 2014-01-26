@@ -1,20 +1,21 @@
-========================================================================
-       Use Console in MFC
-========================================================================
+Using Console in MFC
+=====================
+___
+**例如一个对话框程序。**
 
-例如一个对话框程序。
+```
 BOOL CTDlg::OnInitDialog()
-{ 添加     //打开控制台
-      ::AllocConsole();    // 打开控制台资源
-     freopen("CONOUT$", "w+t", stdout);    // 申请写
-      freopen("CONIN$","r+t",stdin);
+{
+	::AllocConsole(); // 打开控制台资源
+	freopen("CONOUT$", "w+t", stdout); // 申请写
+	freopen("CONIN$","r+t",stdin);
 }
+```
 
-然后在需要用到的地方添加这段代码：
+**然后在需要用到的地方添加这段代码：**
 
-转自http://ygdljg.blog.163.com/blog/static/54601046200893042229423/
-        写这份博客，首先感谢swordzjj，从他的专栏中找到这么宝贵的资源，我要在MFC中调用自己的模板类的输出函数，这个模板类已经在控制台程序下实现，所以其输出函数都是用cout在控制台窗口中输出的，为了在MFC中演示自己的模板类的输出，又不想重写自己的输出函数，所以要在MFC中用到控制台窗口，故要在MFC中重载std::cout来使用cout，废话少说，让我们看看如何实现的。
- #ifndef __GUICON_H__
+```
+#ifndef __GUICON_H__
 #define __GUICON_H__
 #include <windows.h>
 #include <stdio.h>
@@ -23,51 +24,52 @@ BOOL CTDlg::OnInitDialog()
 #include <iostream>
 #include <fstream>
 using namespace std;
+
 // maximum mumber of lines the output console should have
 static const WORD MAX_CONSOLE_LINES = 500;
 void RedirectIOToConsole();
 void RedirectIOToConsole()
 {
- int hConHandle;
- HANDLE lStdHandle;
- CONSOLE_SCREEN_BUFFER_INFO coninfo;
- FILE *fp;
- // allocate a console for this app
- AllocConsole();
- // set the screen buffer to be big enough to let us scroll text
- GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
- coninfo.dwSize.Y = MAX_CONSOLE_LINES;
- SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
- // redirect unbuffered STDOUT to the console
- lStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
- hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
- fp = _fdopen( hConHandle, "w" );
- *stdout = *fp;
- setvbuf( stdout, NULL, _IONBF, 0 );
- // redirect unbuffered STDIN to the console
- lStdHandle = GetStdHandle(STD_INPUT_HANDLE);
- hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
- fp = _fdopen( hConHandle, "r" );
- *stdin = *fp;
- setvbuf( stdin, NULL, _IONBF, 0 );
- // redirect unbuffered STDERR to the console
- lStdHandle = GetStdHandle(STD_ERROR_HANDLE);
- hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
- fp = _fdopen( hConHandle, "w" );
- *stderr = *fp;
- setvbuf( stderr, NULL, _IONBF, 0 );
- // make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
- // point to console as well
- ios::sync_with_stdio();
+	int hConHandle;
+	HANDLE lStdHandle;
+	CONSOLE_SCREEN_BUFFER_INFO coninfo;
+	FILE *fp;
+	// allocate a console for this app
+	AllocConsole();
+	// set the screen buffer to be big enough to let us scroll text
+
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
+ 	coninfo.dwSize.Y = MAX_CONSOLE_LINES;
+ 	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
+ 	// redirect unbuffered STDOUT to the console
+ 	lStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+ 	hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ 	fp = _fdopen( hConHandle, "w" );
+ 	*stdout = *fp;
+ 	setvbuf( stdout, NULL, _IONBF, 0 );
+ 	// redirect unbuffered STDIN to the console
+ 	lStdHandle = GetStdHandle(STD_INPUT_HANDLE);
+ 	hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ 	fp = _fdopen( hConHandle, "r" );
+ 	*stdin = *fp;
+ 	setvbuf( stdin, NULL, _IONBF, 0 );
+ 	// redirect unbuffered STDERR to the console
+ 	lStdHandle = GetStdHandle(STD_ERROR_HANDLE);
+ 	hConHandle = _open_osfhandle((INT_PTR)lStdHandle, _O_TEXT);
+ 	fp = _fdopen( hConHandle, "w" );
+ 	*stderr = *fp;
+ 	setvbuf( stderr, NULL, _IONBF, 0 );
+ 	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
+ 	// point to console as well
+ 	ios::sync_with_stdio();
 }
 #endif 
+```
+**然后就可以用cout在console里输出了。**
 
+**最后，记得在结束程序钱释放掉。**
 
-然后就可以顺利用cout cin了。！！
-
-
-http://blog.csdn.net/everettjf/article/details/5931043
-
+```
 AllocConsole();  
 freopen("CONOUT$","w+t",stdout);  
 freopen("CONIN$","r+t",stdin);  
@@ -77,9 +79,15 @@ cin >> iTest;
 fclose(stdout);
 fclose(stdin);
 FreeConsole();
+```
 
-记得在结束程序钱释放掉。
 
-http://blog.csdn.net/acaiacc/article/details/5543669
-http://blog.csdn.net/VisualEleven/article/details/5517541
-http://nianning1981.blog.163.com/blog/static/30830143201002632546873/
+_Reference:_ 
+
+<http://blog.csdn.net/everettjf/article/details/5931043>
+<http://blog.csdn.net/acaiacc/article/details/5543669>
+<http://ygdljg.blog.163.com/blog/static/54601046200893042229423/>
+
+<http://blog.csdn.net/VisualEleven/article/details/5517541>
+<http://nianning1981.blog.163.com/blog/static/30830143201002632546873/>
+

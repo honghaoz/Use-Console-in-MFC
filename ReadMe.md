@@ -67,7 +67,7 @@ void RedirectIOToConsole()
 ```
 **然后就可以用cout在console里输出了。**
 
-**最后，记得在结束程序钱释放掉。**
+**最后，记得在结束程序前释放掉。**
 
 ```
 AllocConsole();  
